@@ -1,4 +1,5 @@
 use sysinfo::{Disks, System};
+use std::env;
 
 fn main() {
   // Obtener información del sistema
@@ -10,7 +11,8 @@ println!("System name:             {:?}", System::name());
 println!("System kernel version:   {:?}", System::kernel_version());
 println!("System OS version:       {:?}", System::os_version());
 println!("System host name:        {:?}", System::host_name());
-
+let shell = get_shell();
+println!("Shell: {}", shell);
   //RAM INFO
  
   println!("total memory: {} bytes", sys.total_memory());
@@ -33,4 +35,9 @@ for disk in &disks {
     println!("{disk:?}");
 }
    
+}
+
+
+fn get_shell() -> String {
+    env::var("SHELL").unwrap_or_else(|_| "Desconocido".to_string())
 }
