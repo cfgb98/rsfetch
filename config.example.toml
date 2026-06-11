@@ -1,0 +1,26 @@
+# Example rsfetch configuration.
+#
+# Copy to $XDG_CONFIG_HOME/rsfetch/config.toml (usually
+# ~/.config/rsfetch/config.toml), or point at it with `rsfetch --config PATH`.
+# Every key is optional; omitted keys fall back to the built-in defaults.
+# Command-line flags override anything set here.
+
+# Which fields to show, in order.
+# Available: host, os, kernel, shell, uptime, cpu, memory, swap, disks
+fields = ["host", "os", "kernel", "shell", "uptime", "cpu", "memory", "swap", "disks"]
+
+# String placed between each label and its value.
+separator = ":"
+
+# Show every mounted filesystem instead of only the root mount.
+all_disks = false
+
+# When to use color: "auto" (color on a terminal), "always", or "never".
+color = "auto"
+
+# Color theme: "default" or "mono".
+theme = "default"
+
+# Logo: "auto" (detect from the system), "none", or a name such as
+# "arch", "debian", "fedora", "ubuntu", "wsl", "generic".
+logo = "auto"

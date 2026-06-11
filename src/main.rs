@@ -1,43 +1,58 @@
-use sysinfo::{Disks, System};
-use std::env;
+use std::process::ExitCode;
 
-fn main() {
-  // Obtener información del sistema
-  let mut sys = System::new_all();
-  sys.refresh_all();
-// Display system information:
-println!("Bienvenido a  RSfetch");
-println!("System name:             {:?}", System::name());
-println!("System kernel version:   {:?}", System::kernel_version());
-println!("System OS version:       {:?}", System::os_version());
-println!("System host name:        {:?}", System::host_name());
-let shell = get_shell();
-println!("Shell: {}", shell);
-  //RAM INFO
- 
-  println!("total memory: {} bytes", sys.total_memory());
-  println!("used memory : {} bytes", sys.used_memory());
-  println!("total swap  : {} bytes", sys.total_swap());
-  println!("used swap   : {} bytes", sys.used_swap());
+use clap::Parser;
+use supports_color::Stream;
 
-// Number of CPUs:
-println!("NB CPUs: {}", sys.cpus().len());
+use rsfetch::cli::Cli;
+use rsfetch::config::{self, Config};
+use rsfetch::format::{build_rows, render_block};
+use rsfetch::info;
+use rsfetch::logo;
+use rsfetch::render::combine_columns;
+use rsfetch::theme::{should_use_color, Theme};
 
-// Display processes ID, name na disk usage:
-for (pid, process) in sys.processes() {
-    println!("[{pid}] {:?} {:?}", process.name(), process.disk_usage());
-}
+/// Spaces between the logo column and the info column.
+const GUTTER: usize = 3;
 
-// We display all disks' information:
-println!("=> disks:");
-let disks = Disks::new_with_refreshed_list();
-for disk in &disks {
-    println!("{disk:?}");
-}
-   
-}
+fn main() -> ExitCode {
+    let cli = Cli::parse();
 
+    let file = match config::load(cli.config.as_deref()) {
+        Ok(file) => file,
+        Err(err) => {
+            eprintln!("rsfetch: {err}");
+            return ExitCode::FAILURE;
+        }
+    };
+    let config = Config::resolve(file, &cli);
 
-fn get_shell() -> String {
-    env::var("SHELL").unwrap_or_else(|_| "Desconocido".to_string())
+    let Some(theme) = Theme::by_name(&config.theme) else {
+        eprintln!("rsfetch: unknown theme '{}'", config.theme);
+        return ExitCode::FAILURE;
+    };
+    let use_color = should_use_color(config.color, supports_color::on(Stream::Stdout).is_some());
+
+    let info = info::collect();
+
+    let logo = match logo::resolve(&config.logo, info.os_name.as_deref(), info.kernel_version.as_deref())
+    {
+        Ok(logo) => logo,
+        Err(err) => {
+            eprintln!("rsfetch: {err}");
+            return ExitCode::FAILURE;
+        }
+    };
+
+    let rows = build_rows(&info, &config.fields, config.show_all_disks);
+    let info_lines = render_block(&rows, &config.separator, &theme, use_color);
+
+    let output = match &logo {
+        Some(logo) => combine_columns(logo, &info_lines, GUTTER, &theme.logo, use_color),
+        None => info_lines,
+    };
+    for line in output {
+        println!("{line}");
+    }
+
+    ExitCode::SUCCESS
 }
