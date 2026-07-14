@@ -6,6 +6,7 @@
 //! present it.
 
 use std::env;
+use std::fs;
 
 use sysinfo::{CpuRefreshKind, Disks, MemoryRefreshKind, RefreshKind, System};
 
@@ -69,10 +70,25 @@ pub fn collect() -> SystemInfo {
         })
         .collect();
 
+    // 1. Extract the OS name first
+    // 1.1 Conditionally fetch the OS name
+    let os_name = if cfg!(target_os = "macos") {
+        Some("macOS".to_string())
+    } else {
+        System::name()
+    };
+
+    // 2. Conditionally fetch the OS version
+    let os_version = if cfg!(target_os = "macos") {
+        get_macos_version().or_else(System::os_version)
+    } else {
+        System::os_version()
+    };
+
     SystemInfo {
         host_name: System::host_name(),
-        os_name: System::name(),
-        os_version: System::os_version(),
+        os_name,       // Use the variable we defined above
+        os_version,    // Use the variable we defined above
         kernel_version: System::kernel_version(),
         shell: get_shell(),
         uptime_secs: System::uptime(),
@@ -91,6 +107,28 @@ pub fn collect() -> SystemInfo {
 /// The user's login shell from `$SHELL`, if set.
 fn get_shell() -> Option<String> {
     env::var("SHELL").ok().filter(|s| !s.is_empty())
+}
+
+// Your macOS-specific function
+#[allow(dead_code)]
+fn get_macos_version() -> Option<String> {
+    let path = "/System/Library/CoreServices/SystemVersion.plist";
+    let content = fs::read_to_string(path).ok()?;
+    
+    let key_marker = "<key>ProductVersion</key>";
+    let key_pos = content.find(key_marker)?;
+    
+    let remainder = &content[key_pos + key_marker.len()..];
+    
+    let string_start_marker = "<string>";
+    let string_end_marker = "</string>";
+    
+    let start_idx = remainder.find(string_start_marker)? + string_start_marker.len();
+    let value_slice = &remainder[start_idx..];
+    
+    let end_idx = value_slice.find(string_end_marker)?;
+    
+    Some(value_slice[..end_idx].to_string())
 }
 
 #[cfg(test)]
