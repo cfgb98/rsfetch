@@ -61,6 +61,8 @@ pub fn detect(os_name: Option<&str>, kernel: Option<&str>) -> &'static str {
         art::FEDORA
     } else if os_lc.contains("ubuntu") {
         art::UBUNTU
+    } else if os_lc.contains("darwin") {
+        art::MAC
     } else {
         art::GENERIC
     }
