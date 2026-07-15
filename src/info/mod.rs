@@ -7,6 +7,7 @@
 
 use std::env;
 use std::fs;
+use std::net::UdpSocket;
 
 use sysinfo::{CpuRefreshKind, Disks, MemoryRefreshKind, RefreshKind, System};
 
@@ -23,6 +24,7 @@ pub struct SystemInfo {
     pub cpu_count: usize,
     pub memory: MemoryInfo,
     pub disks: Vec<DiskInfo>,
+    pub local_ip: Option<String>,
 }
 
 /// Memory and swap usage, in bytes.
@@ -101,6 +103,7 @@ pub fn collect() -> SystemInfo {
             swap_used: sys.used_swap(),
         },
         disks,
+        local_ip: get_local_ip(),
     }
 }
 
@@ -129,6 +132,20 @@ fn get_macos_version() -> Option<String> {
     let end_idx = value_slice.find(string_end_marker)?;
     
     Some(value_slice[..end_idx].to_string())
+}
+
+fn get_local_ip() -> Option<String> {
+    // Bind to any available local port
+    let socket = UdpSocket::bind("0.0.0.0:0").ok()?;
+    
+    // "Connect" to an external IP. 
+    // 8.8.8.8 is a safe bet, port 80 is arbitrary.
+    socket.connect("8.8.8.8:80").ok()?;
+    
+    // Extract the local IP address the OS chose
+    let local_addr = socket.local_addr().ok()?;
+    
+    Some(local_addr.ip().to_string())
 }
 
 #[cfg(test)]

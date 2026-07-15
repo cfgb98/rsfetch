@@ -56,6 +56,12 @@ pub fn build_rows(
                     rows.push((format!("Disk ({})", disk.mount_point), disk_value(disk)));
                 }
             }
+            // Add this new block right here!
+            Field::LocalIp => {
+                if let Some(ip) = &info.local_ip {
+                    rows.push(("Local IP".into(), ip.clone()));
+                }
+            }
         }
     }
 

@@ -22,6 +22,8 @@ pub enum Field {
     Memory,
     Swap,
     Disks,
+    #[serde(rename = "local_ip")]
+    LocalIp,
 }
 
 impl Field {
@@ -37,6 +39,7 @@ impl Field {
             Field::Memory => "memory",
             Field::Swap => "swap",
             Field::Disks => "disks",
+            Field::LocalIp => "local_ip",
         }
     }
 
@@ -52,6 +55,7 @@ impl Field {
             Field::Memory,
             Field::Swap,
             Field::Disks,
+            Field::LocalIp,
         ]
     }
 }
@@ -82,6 +86,7 @@ impl FromStr for Field {
             "memory" => Ok(Field::Memory),
             "swap" => Ok(Field::Swap),
             "disks" => Ok(Field::Disks),
+            "local_ip" | "ip" => Ok(Field::LocalIp), // Added "ip" as a convenient alias!
             _ => Err(ParseFieldError(s.to_string())),
         }
     }
@@ -96,12 +101,14 @@ mod tests {
         assert_eq!("host".parse(), Ok(Field::Host));
         assert_eq!("memory".parse(), Ok(Field::Memory));
         assert_eq!("disks".parse(), Ok(Field::Disks));
+        assert_eq!("local_ip".parse(), Ok(Field::LocalIp));
     }
 
     #[test]
     fn parsing_is_case_insensitive() {
         assert_eq!("CPU".parse(), Ok(Field::Cpu));
         assert_eq!("Os".parse(), Ok(Field::Os));
+        assert_eq!("LOCAL_IP".parse(), Ok(Field::LocalIp));
     }
 
     #[test]
@@ -122,7 +129,7 @@ mod tests {
         struct Wrapper {
             fields: Vec<Field>,
         }
-        let parsed: Wrapper = toml::from_str(r#"fields = ["host", "cpu", "disks"]"#).unwrap();
-        assert_eq!(parsed.fields, vec![Field::Host, Field::Cpu, Field::Disks]);
+        let parsed: Wrapper = toml::from_str(r#"fields = ["host", "cpu", "local_ip"]"#).unwrap();
+        assert_eq!(parsed.fields, vec![Field::Host, Field::Cpu, Field::LocalIp]);
     }
 }
