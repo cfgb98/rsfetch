@@ -63,7 +63,7 @@ pub fn detect(os_name: Option<&str>, kernel: Option<&str>) -> &'static str {
         art::UBUNTU
     } else if os_lc.contains("macos") || os_lc.contains("darwin") {
         art::MAC
-    } else ifos_lc.contains("windows") || os_lc.contains("win32") {
+    } else if os_lc.contains("windows") || os_lc.contains("win32") {
         art::WINDOWS
     } else {
         art::GENERIC
