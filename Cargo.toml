@@ -10,6 +10,7 @@ serde = { version = "1", features = ["derive"] }
 toml = "0.8"
 owo-colors = "4"
 supports-color = "3"
+display-info = "0.5.9"
 
 [dev-dependencies]
 assert_cmd = "2"

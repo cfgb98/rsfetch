@@ -10,6 +10,7 @@ use std::fs;
 use std::net::UdpSocket;
 
 use sysinfo::{CpuRefreshKind, Disks, MemoryRefreshKind, RefreshKind, System};
+use display_info::DisplayInfo;
 
 /// Raw, unformatted snapshot of the host system.
 #[derive(Debug, Clone)]
@@ -24,6 +25,7 @@ pub struct SystemInfo {
     pub cpu_count: usize,
     pub memory: MemoryInfo,
     pub disks: Vec<DiskInfo>,
+    pub displays: Vec<String>, 
     pub local_ip: Option<String>,
 }
 
@@ -87,6 +89,14 @@ pub fn collect() -> SystemInfo {
         System::os_version()
     };
 
+    let displays = DisplayInfo::all()
+            .unwrap_or_default()
+            .into_iter()
+            .map(|display| {
+                format!("{}x{} @ {}Hz", display.width, display.height, display.frequency.round())
+            })
+            .collect();
+
     SystemInfo {
         host_name: System::host_name(),
         os_name,       // Use the variable we defined above
@@ -103,6 +113,7 @@ pub fn collect() -> SystemInfo {
             swap_used: sys.used_swap(),
         },
         disks,
+        displays,
         local_ip: get_local_ip(),
     }
 }

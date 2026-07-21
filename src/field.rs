@@ -6,7 +6,6 @@
 
 use std::fmt;
 use std::str::FromStr;
-
 use serde::Deserialize;
 
 /// A single line of information in the output.
@@ -22,6 +21,8 @@ pub enum Field {
     Memory,
     Swap,
     Disks,
+    #[serde(rename = "displays")]
+    Displays,
     #[serde(rename = "local_ip")]
     LocalIp,
 }
@@ -39,6 +40,7 @@ impl Field {
             Field::Memory => "memory",
             Field::Swap => "swap",
             Field::Disks => "disks",
+            Field::Displays => "displays",
             Field::LocalIp => "local_ip",
         }
     }
@@ -55,6 +57,7 @@ impl Field {
             Field::Memory,
             Field::Swap,
             Field::Disks,
+            Field::Displays,
             Field::LocalIp,
         ]
     }
@@ -86,6 +89,7 @@ impl FromStr for Field {
             "memory" => Ok(Field::Memory),
             "swap" => Ok(Field::Swap),
             "disks" => Ok(Field::Disks),
+            "displays" => Ok(Field::Displays),
             "local_ip" | "ip" => Ok(Field::LocalIp), // Added "ip" as a convenient alias!
             _ => Err(ParseFieldError(s.to_string())),
         }
