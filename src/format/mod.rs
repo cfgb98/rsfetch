@@ -56,6 +56,25 @@ pub fn build_rows(
                     rows.push((format!("Disk ({})", disk.mount_point), disk_value(disk)));
                 }
             }
+            // Inside the match field block in format/mod.rs:
+
+            Field::Displays => {
+                if info.displays.len() == 1 {
+                    // If there's only one display, just call it "Display"
+                    rows.push(("Display".into(), info.displays[0].clone()));
+                } else {
+                    // If there are multiple, number them: "Display (1)", "Display (2)"
+                    for (i, display) in info.displays.iter().enumerate() {
+                        rows.push((format!("Display ({})", i + 1), display.clone()));
+                    }
+                }
+            }
+            // Add this new block right here!
+            Field::LocalIp => {
+                if let Some(ip) = &info.local_ip {
+                    rows.push(("Local IP".into(), ip.clone()));
+                }
+            }
         }
     }
 
